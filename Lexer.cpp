@@ -171,12 +171,14 @@ void Lexer::next_sym()
 			}
 		}
 		break;
+	/*
 	case '&':
 		sym = and; next_char();
 		break;
 	case '|':
 		sym = or; next_char();
 		break;
+	*/
 	case '=':
 		sym = assign; next_char();
 		if (ch == '=')

@@ -14,7 +14,7 @@ class Lexer
 		package, import, ident,
 		//operators
 		plus, minus, times, slash, modulo, pluseql, minuseql, timeseql, slasheql, moduloeql,
-		and, andand, or, oror,
+		//and, andand, or, oror,
 		//comparators
 		eql, lss, gtr, geq, leq, neq,
 		//brackets
