@@ -14,17 +14,17 @@ class Lexer
 		package, import, ident,
 		//operators
 		plus, minus, times, slash, modulo, pluseql, minuseql, timeseql, slasheql, moduloeql,
-		//and, andand, or, oror,
+		and_sym, andand, or_sym, oror,
 		//comparators
 		eql, lss, gtr, geq, leq, neq,
 		//brackets
 		lparen, rparen, lsqrbr, rsqrbr, lcrlybr, rcrlybr,
 		number, assign, EOL, eof, semicolon, dot, quote,
-		callsym, beginsym, 
+		callsym, beginsym,
 		endsym, ifsym, whilesym, becomes, thensym, dosym, constsym, comma,
 		varsym, procsym, period, oddsym
 	} Symbol;
-	
+
 	const static std::string string_sym[];
 
 	//variables

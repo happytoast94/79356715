@@ -1,9 +1,9 @@
 #include "Lexer.h"
 
-const std::string Lexer::string_sym[] = { 
+const std::string Lexer::string_sym[] = {
 	"package", "import", "ident", "+", "-", "*", "/", "%", "+=", "-=",
-	"*=", "/=", "%=", 
-	//"&", "&&", "|", "||",
+	"*=", "/=", "%=",
+	"&", "&&", "|", "||",
 	"==", "<", ">", ">=", "<=", "!=",
 	"(", ")", "[", "]", "{", "}",
 	"number", "=", "EOL", "eof", ";", ".", "\"" };
@@ -12,11 +12,11 @@ void Lexer::add_file(std::string _filename)
 {
 	line_count = 0;
 	ch_count = 0;
-	current_file.open(_filename);
+	current_file.open(_filename, std::fstream::in);
 
-	if (!current_file)
+	if (!current_file.is_open())
 	{
-		std::cout << "Could not open file" << std::endl;
+		std::cout << "Could not open file " + _filename << std::endl;
 		return;
 	}
 
@@ -27,10 +27,13 @@ void Lexer::add_file(std::string _filename)
 
 void Lexer::read_file_next_line()
 {
+	line = "";
+
 	if (!std::getline(current_file, line))
 	{
 		sym = eof;
 	}
+
 	line_count++;
 	ch_count = 0;
 	next_char();
@@ -40,7 +43,16 @@ void Lexer::error(std::string s)
 {
 	//output: "[line]: error"
 	flag_error = true;
-	list_error.push_back(static_cast<std::ostringstream*>(&(std::ostringstream() << line_count))->str() + ": " + s);
+	
+	std::string str_error = "";
+	str_error += static_cast<std::ostringstream*>(&(std::ostringstream() << line_count))->str() + ": " + s + "\n";
+	str_error += line + "\n";
+	
+	for (int i = 2; i < ch_count; ++i)
+		str_error += " ";
+	str_error += "^";
+
+	list_error.push_back(str_error);
 }
 
 void Lexer::print_errors()
@@ -78,7 +90,7 @@ void Lexer::next_char()
 {
 	if (ch_count < line.size())
 		ch = line.at(ch_count);
-	else
+	else if (sym != eof)
 	{
 		ch = 0x00;	//EOL	
 	}
@@ -146,13 +158,17 @@ void Lexer::next_sym()
 			next_sym();
 		}
 		else if (ch == '*')
-		{
-			next_char();
+		{		
 			while (true)
 			{
+				next_char();
 				if (ch == '*')
 				{
-					next_char();
+					while (ch == '*')
+					{
+						next_char();
+					}
+					
 					if (ch == '/')
 					{
 						break;
@@ -160,26 +176,29 @@ void Lexer::next_sym()
 				}
 				if (ch == 0x0)
 				{
+					line = "";
+
 					if (!std::getline(current_file, line))
 					{
 						sym = eof;
+						error("comment doesnt end");
 						break;
 					}
-					ch_count = 0;
+
 					line_count++;
-				}
-				next_char();		
+					ch_count = 0;
+				}	
 			}
+			next_char();
+			next_sym();
 		}
 		break;
-	/*
 	case '&':
-		sym = and; next_char();
+		sym = and_sym; next_char();
 		break;
 	case '|':
-		sym = or; next_char();
+		sym = or_sym; next_char();
 		break;
-	*/
 	case '=':
 		sym = assign; next_char();
 		if (ch == '=')
@@ -211,6 +230,9 @@ void Lexer::next_sym()
 		break;
 	case 0x0: 
 		read_file_next_line();
+		if (sym == eof)
+			break;
+
 		next_sym();
 		break;
 	default:
@@ -283,18 +305,21 @@ void Lexer::importspec()
 // ImportDecl = "import" ( ImportSpec | "(" { ImportSpec ";" } ")" ) 
 void Lexer::importdecl()
 {
-	if (accept(import))
+	while (accept(import))
 	{
 		if (accept(lparen))
-		{		
-			importspec();
-			accept(semicolon);
-			expect(rparen);
+		{	
+			do
+			{
+				importspec();
+				expect(semicolon);
+			} while (!accept(rparen));
 		}
 		else
 		{
 			importspec();
 		}
+		expect(semicolon);
 	}
 }
 
@@ -311,7 +336,7 @@ void Lexer::sourcefile()
 {
 	next_sym();
 	packageclause();
-	accept(semicolon);
+	expect(semicolon);
 	importdecl();
 	//topleveldecl();
 }
