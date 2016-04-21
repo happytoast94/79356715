@@ -24,6 +24,6 @@ class Parser
 public:
 	Parser();
 
-	void add_file(std::string filename);
+	int add_file(std::string filename);
 
 };

@@ -3,7 +3,7 @@
 Lexer::Lexer(){}
 Lexer::~Lexer(){ current_file.close(); }
 
-void Lexer::add_file(std::string _filename)
+int Lexer::add_file(std::string _filename)
 {
 	line_count = 0;
 	ch_count = 0;
@@ -12,7 +12,7 @@ void Lexer::add_file(std::string _filename)
 	if (!current_file.is_open())
 	{
 		std::cout << "Could not open file " + _filename << std::endl;
-		return;
+		return 0;
 	}
 }
 

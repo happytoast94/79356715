@@ -18,9 +18,13 @@ int main(int argc, char *argv[])
 	for (std::string s : files)
 	{
 		
-		p.add_file(s);
+		if (p.add_file(s))
+		{
+			return 0;
+		}
 	}
 	
 
 	Error::getInstance().print_errors();
+	return 0;
 }

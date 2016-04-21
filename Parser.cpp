@@ -2,9 +2,12 @@
 
 Parser::Parser(){}
 
-void Parser::add_file(std::string _filename)
+int Parser::add_file(std::string _filename)
 {
-	Lexer::getInstance().add_file(_filename);
+	if (!Lexer::getInstance().add_file(_filename))
+	{
+		return 0;
+	}
 	tree.define_root(sourcefile());
 	tree.print_preorder();
 }

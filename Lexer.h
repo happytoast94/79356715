@@ -34,7 +34,7 @@ public:
 	Symboltable::Symbol sym;
 
 	//methods
-	void add_file(std::string filename);
+	int add_file(std::string filename);
 	void next_sym();
 	void error(std::string msg);
 };
