@@ -2,11 +2,22 @@
 #define SYMBOLTABLE_H
 
 #include <string>
+#include <vector>
 
 class Symboltable
 {
+	Symboltable(){};
 
 public:
+	//Singleton stuff
+	static Symboltable& getInstance()
+	{
+		static Symboltable instance;	// Guaranteed to be destroyed.
+		return instance;		// Instantiated on first use.
+	}
+	Symboltable(Symboltable const&) = delete;
+	void operator=(Symboltable const&) = delete;
+
 	typedef enum
 	{
 		package, import, ident,
@@ -24,6 +35,10 @@ public:
 	} Symbol;
 
 	static const std::string string_sym[];
+
+	std::vector<std::pair<int, std::string>> ls_identifier;
+	void add_identifier(std::string id);
+	std::string get_last_identifier();
 };
 
 #endif

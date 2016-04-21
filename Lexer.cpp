@@ -193,12 +193,21 @@ void Lexer::next_sym()
 				next_char();
 			} while (isalnum(ch));
 			
-			sym = Symboltable::ident;
+			
 
 			if (IdentifierStr == "package")
+			{
 				sym = Symboltable::package;
-			if (IdentifierStr == "import")
+			}
+			else if (IdentifierStr == "import")
+			{
 				sym = Symboltable::import;
+			}
+			else
+			{
+				sym = Symboltable::ident;
+				Symboltable::getInstance().add_identifier(IdentifierStr);
+			}
 		}
 
 		/*

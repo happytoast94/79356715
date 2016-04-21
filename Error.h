@@ -6,7 +6,8 @@
 
 class Error
 {
-	Error();
+	Error(){}
+	~Error(){}
 	std::vector<std::string> list_error;
 
 

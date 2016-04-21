@@ -5,7 +5,8 @@ Parser::Parser(){}
 void Parser::add_file(std::string _filename)
 {
 	Lexer::getInstance().add_file(_filename);
-	sourcefile();
+	tree.define_root(sourcefile());
+	tree.print_preorder();
 }
 
 int Parser::accept(Symboltable::Symbol s)
@@ -33,60 +34,104 @@ void Parser::topleveldecl()
 }
 
 // ImportPath = string_lit 
-void Parser::importpath()
+Node* Parser::importpath()
 {
-	expect(Symboltable::quote);  // "abc"
+	return expect_terminal("ImportPath", Symboltable::quote);  // "abc"
 }
 
 // ImportSpec = ["." | PackageName] ImportPath 
-void Parser::importspec()
+Node* Parser::importspec()
 {
-	if (accept(Symboltable::dot))
+	Node* result = new Node("ImportSpec");
+	Node* tmp_node;
+	if (tmp_node = accept_terminal("Token", Symboltable::dot))
 	{
-		importpath();
+		result->add_child(tmp_node);
+		result->add_child(importpath());
+		return result;
 	}
-	else if (accept(Symboltable::ident))
+	else if (tmp_node = accept_terminal("Identifier", Symboltable::ident))
 	{
-		importpath();
+		result->add_child(tmp_node);
+		result->add_child(importpath());
+		return result;
 	}
-	else importpath();
+	else
+	{
+		result->add_child(importpath());
+		return result;
+	}
 }
 
 // ImportDecl = "import" ( ImportSpec | "(" { ImportSpec ";" } ")" ) 
-void Parser::importdecl()
+std::vector<Node*> Parser::importdecl()
 {
-	while (accept(Symboltable::import))
+	std::vector<Node*> ls_results;
+	Node* tmp_result;
+	while (Node* tmp = accept_terminal("Keyword", Symboltable::import))
 	{
-		if (accept(Symboltable::lparen))
+		if (Node* tmp2 = accept_terminal("Token", Symboltable::lparen))
 		{
+			tmp_result = new Node("ImportDecl", tmp, tmp2);
 			do
 			{
-				importspec();
-				expect(Symboltable::semicolon);
-			} while (!accept(Symboltable::rparen));
+				tmp_result->add_child(importspec());
+				tmp_result->add_child(expect_terminal("Token", Symboltable::semicolon));
+			} while (!accept_terminal("Token", Symboltable::rparen));
+			tmp_result->add_child(new Node("Token \"" + Symboltable::getInstance().string_sym[Symboltable::rparen] + "\""));
 		}
 		else
 		{
-			importspec();
+			tmp_result = new Node("ImportDecl", tmp, importspec());
 		}
-		expect(Symboltable::semicolon);
+		tmp_result->add_child(expect_terminal("Token", Symboltable::semicolon));
+		ls_results.push_back(tmp_result);
 	}
+
+	return ls_results;
 }
 
-// PackageClause  = "package" PackageName
-// PackageName    = identifier
-void Parser::packageclause()
+// PackageName = identifier
+Node* Parser::packagename()
 {
-	expect(Symboltable::package);
-	expect(Symboltable::ident);
+	Node* result = new Node("PackageName");
+	result->add_child(expect_terminal("Identifier " + Symboltable::getInstance().get_last_identifier(), Symboltable::ident));
+	return result;
+}
+
+// PackageClause = "package" PackageName
+Node* Parser::packageclause()
+{
+	Node* result = new Node("PackageClause");
+	result->add_child(expect_terminal("Keyword", Symboltable::package));
+	result->add_child(packagename());
+	return result;
+}
+
+Node* Parser::accept_terminal(std::string description, Symboltable::Symbol s)
+{
+	if (accept(s))
+	{
+		return new Node(description + " \"" + Symboltable::string_sym[s] + "\"");
+	}
+	else return NULL;
+}
+
+Node* Parser::expect_terminal(std::string description, Symboltable::Symbol s)
+{
+	if (expect(s))
+	{
+		return new Node(description + " \"" + Symboltable::string_sym[s] + "\"");
+	}
+	else return NULL;
 }
 
 // SourceFile = PackageClause ";" { ImportDecl ";" } { TopLevelDecl ";" }
-void Parser::sourcefile()
+Node* Parser::sourcefile()
 {
 	Lexer::getInstance().next_sym();
-	packageclause();
-	expect(Symboltable::semicolon);
-	importdecl();
-	//topleveldecl();
+	Node* root = new Node("Sourcefile", packageclause());
+	root->add_child(expect_terminal("Token", Symboltable::semicolon));
+	root->add_childs(importdecl());
+	return root;
 }

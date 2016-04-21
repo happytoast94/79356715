@@ -1,2 +1,2 @@
 all:
-	g++ main.cpp Lexer.h Lexer.cpp Parser.h Parser.cpp Error.h Error.cpp Symboltable.h Symboltable.cpp -o out -std=c++11 
+	g++ main.cpp Lexer.cpp Parser.cpp Error.cpp Symboltable.cpp Tree.cpp -g -o out -std=c++11 
