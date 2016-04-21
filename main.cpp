@@ -1,4 +1,4 @@
-#include "Lexer.h"
+#include "Parser.h"
 
 int main(int argc, char *argv[])
 {	
@@ -13,15 +13,14 @@ int main(int argc, char *argv[])
 		std::cout << "Enter a Go-File name" << std::endl;
 	}
 
+	Parser p;
+	
 	for (std::string s : files)
 	{
-		Lexer::getInstance().add_file(s);
+		
+		p.add_file(s);
 	}
 	
-	if (Lexer::getInstance().flag_error)
-	{
-		Lexer::getInstance().print_errors();
-	}
-	else std::cout << "All good" << std::endl;
-	
+
+	Error::getInstance().print_errors();
 }

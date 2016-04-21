@@ -1,12 +1,7 @@
 #include "Lexer.h"
 
-const std::string Lexer::string_sym[] = {
-	"package", "import", "ident", "+", "-", "*", "/", "%", "+=", "-=",
-	"*=", "/=", "%=",
-	"&", "&&", "|", "||",
-	"==", "<", ">", ">=", "<=", "!=",
-	"(", ")", "[", "]", "{", "}",
-	"number", "=", "EOL", "eof", ";", ".", "\"" };
+Lexer::Lexer(){}
+Lexer::~Lexer(){ current_file.close(); }
 
 void Lexer::add_file(std::string _filename)
 {
@@ -19,10 +14,6 @@ void Lexer::add_file(std::string _filename)
 		std::cout << "Could not open file " + _filename << std::endl;
 		return;
 	}
-
-	sourcefile();
-	
-	current_file.close();
 }
 
 void Lexer::read_file_next_line()
@@ -31,7 +22,7 @@ void Lexer::read_file_next_line()
 
 	if (!std::getline(current_file, line))
 	{
-		sym = eof;
+		sym = Symboltable::eof;
 	}
 
 	line_count++;
@@ -39,58 +30,13 @@ void Lexer::read_file_next_line()
 	next_char();
 }
 
-void Lexer::error(std::string s)
-{
-	//output: "[line]: error"
-	flag_error = true;
-	
-	std::string str_error = "";
-	str_error += static_cast<std::ostringstream*>(&(std::ostringstream() << line_count))->str() + ": " + s + "\n";
-	str_error += line + "\n";
-	
-	for (int i = 2; i < ch_count; ++i)
-		str_error += " ";
-	str_error += "^";
-
-	list_error.push_back(str_error);
-}
-
-void Lexer::print_errors()
-{
-	if (flag_error || !list_error.empty())
-	{
-		for (int i = 0; i < list_error.size(); ++i)
-		{
-			std::cout << list_error.at(i) << std::endl;
-		}
-	}
-}
-
-int Lexer::accept(Symbol s)
-{
-	if (sym == s) {
-		next_sym();
-		return 1;
-	}
-	return 0;
-}
-
-int Lexer::expect(Symbol s)
-{
-	if (accept(s))
-		return 1;
-	error("expected: '" + string_sym[s] + "', found '" + string_sym[sym] + "'");
-	return 0;
-}
-
-
 // sets the global variable ch to the next character, if it exists
 // increases the global variable chcount
 void Lexer::next_char()
 {
 	if (ch_count < line.size())
 		ch = line.at(ch_count);
-	else if (sym != eof)
+	else if (sym != Symboltable::eof)
 	{
 		ch = 0x00;	//EOL	
 	}
@@ -110,7 +56,7 @@ void Lexer::next_sym()
 	switch (ch)
 	{
 	case '"':
-		sym = quote; next_char();
+		sym = Symboltable::quote; next_char();
 		do
 		{
 			next_char();
@@ -127,31 +73,31 @@ void Lexer::next_sym()
 		next_char();
 		break;
 	case ';':
-		sym = semicolon; next_char();
+		sym = Symboltable::semicolon; next_char();
 		break;
 	case '(':
-		sym = lparen; next_char();
+		sym = Symboltable::lparen; next_char();
 		break;
 	case ')':
-		sym = rparen; next_char();
+		sym = Symboltable::rparen; next_char();
 		break;
 	case ',':
-		sym = comma; next_char();
+		sym = Symboltable::comma; next_char();
 		break;
 	case '%':
-		sym = modulo; next_char();
+		sym = Symboltable::modulo; next_char();
 		break;
 	case '+':
-		sym = plus;  next_char();
+		sym = Symboltable::plus;  next_char();
 		break;
 	case '-':
-		sym = minus; next_char();
+		sym = Symboltable::minus; next_char();
 		break;
 	case '*':
-		sym = times; next_char();
+		sym = Symboltable::times; next_char();
 		break;
 	case '/':
-		sym = slash; next_char();
+		sym = Symboltable::slash; next_char();
 		if (ch == '/')
 		{
 			read_file_next_line();
@@ -180,7 +126,7 @@ void Lexer::next_sym()
 
 					if (!std::getline(current_file, line))
 					{
-						sym = eof;
+						sym = Symboltable::eof;
 						error("comment doesnt end");
 						break;
 					}
@@ -194,43 +140,43 @@ void Lexer::next_sym()
 		}
 		break;
 	case '&':
-		sym = and_sym; next_char();
+		sym = Symboltable::and_sym; next_char();
 		break;
 	case '|':
-		sym = or_sym; next_char();
+		sym = Symboltable::or_sym; next_char();
 		break;
 	case '=':
-		sym = assign; next_char();
+		sym = Symboltable::assign; next_char();
 		if (ch == '=')
 		{
-			sym = eql; next_char();
+			sym = Symboltable::eql; next_char();
 		}
 		break;
 	case '!':
-		sym = eql; next_char();
+		sym = Symboltable::eql; next_char();
 		if (ch == '=')
 		{
-			sym = neq; next_char();
+			sym = Symboltable::neq; next_char();
 		}
 		break;
 	case '>':
-		sym = gtr; next_char();
+		sym = Symboltable::gtr; next_char();
 		if (ch == '=')
 		{
-			sym = geq; next_char();
+			sym = Symboltable::geq; next_char();
 		}
 		break;
 	case '<':
-		sym = lss;
+		sym = Symboltable::lss;
 		next_char();
 		if (ch == '=')
 		{
-			sym = leq; next_char();
+			sym = Symboltable::leq; next_char();
 		}
 		break;
 	case 0x0: 
 		read_file_next_line();
-		if (sym == eof)
+		if (sym == Symboltable::eof)
 			break;
 
 		next_sym();
@@ -247,12 +193,12 @@ void Lexer::next_sym()
 				next_char();
 			} while (isalnum(ch));
 			
-			sym = ident;
+			sym = Symboltable::ident;
 
 			if (IdentifierStr == "package")
-				sym = package;
+				sym = Symboltable::package;
 			if (IdentifierStr == "import")
-				sym = import;
+				sym = Symboltable::import;
 		}
 
 		/*
@@ -275,68 +221,7 @@ void Lexer::next_sym()
 	}
 }
 
-// TopLevelDecl  = Declaration | FunctionDecl | MethodDecl
-// Declaration   = ConstDecl | TypeDecl | VarDecl .
-void Lexer::topleveldecl()
+void Lexer::error(std::string msg)
 {
-
-}
-
-// ImportPath = string_lit 
-void Lexer::importpath()
-{
-	expect(quote);  // "abc"
-}
-
-// ImportSpec = ["." | PackageName] ImportPath 
-void Lexer::importspec()
-{
-	if (accept(dot))
-	{
-		importpath();
-	}
-	else if (accept(ident))
-	{
-		importpath();
-	}
-	else importpath();
-}
-
-// ImportDecl = "import" ( ImportSpec | "(" { ImportSpec ";" } ")" ) 
-void Lexer::importdecl()
-{
-	while (accept(import))
-	{
-		if (accept(lparen))
-		{	
-			do
-			{
-				importspec();
-				expect(semicolon);
-			} while (!accept(rparen));
-		}
-		else
-		{
-			importspec();
-		}
-		expect(semicolon);
-	}
-}
-
-// PackageClause  = "package" PackageName
-// PackageName    = identifier
-void Lexer::packageclause()
-{
-	expect(package);
-	expect(ident);
-}
-
-// SourceFile = PackageClause ";" { ImportDecl ";" } { TopLevelDecl ";" }
-void Lexer::sourcefile()
-{
-	next_sym();
-	packageclause();
-	expect(semicolon);
-	importdecl();
-	//topleveldecl();
+	Error::getInstance().add_error_msg(msg, line_count, ch_count, line);
 }
