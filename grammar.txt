@@ -1,0 +1,51 @@
+SourceFile -> PackageClause ImportDecl TopLevelDecl
+
+PackageClause -> "package" identifier
+
+ImportDecl -> ImportSpec ImportDecl2nd
+
+ImportSpec -> "import" string_lit | €
+
+ImportDecl2nd -> "import" string_lit | €
+
+TopLevelDecl -> VarDecl TLD* | FuncDecl TLD*
+
+TLD* -> VarDecl TLD* | FuncDecl TLD* | €
+
+VarDecl -> "var" VarSpec
+
+VarSpec -> identifier VarDef
+
+VarDef -> "=" Expression | type VarDef* | €
+
+VarDef* -> "=" Expression | €
+
+FuncDecl -> "func" identifier Parameter FuncBody
+
+Parameter -> "(" ParamDecl ")"
+
+ParamDecl -> € | identifier type PD*
+
+PD* -> "," identifier type PD* | €
+
+FuncBody -> "{" Block "}" | type "{" Block "}"
+
+Block -> Statement Block2nd
+
+Statement -> VarDecl | FuncCall | Assignment | Return
+
+FuncCall -> identifier"."func_name"(" param_list ")" | func_name"(" param_list ")"
+
+Assignment -> identifier operator Expression
+
+Return -> "return"
+
+Expression -> Term Expr*
+
+Expr* -> "+" Term Expr* | "-" Term Expr* | €
+
+Term -> Faktor Term*
+
+Term* -> "*" Faktor Term* | "/" Faktor Term* | €
+
+Faktor -> "(" Expression ")" | num_lit | identifier
